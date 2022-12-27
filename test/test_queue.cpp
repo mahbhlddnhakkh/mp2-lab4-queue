@@ -196,3 +196,21 @@ TEST(TQueue, test_queue_cercular_buffer)
 	EXPECT_EQ(17, q.TopPop());
 	EXPECT_EQ(true, q.IsEmpty());
 }
+
+TEST(TQueue, simple_queue_priority)
+{
+	TQueue<int> q(4);
+	q.Push(12);
+	q.Push(13, 1);
+	EXPECT_EQ(13, q.Top());
+	q.Push(14, 2);
+	EXPECT_EQ(14, q.Top());
+	q.Push(15, 1);
+	EXPECT_EQ(14, q.Top());
+	q.Pop();
+	EXPECT_EQ(13, q.Top());
+	q.Pop();
+	EXPECT_EQ(15, q.Top());
+	q.Push(99, 99);
+	EXPECT_EQ(99, q.Top());
+}

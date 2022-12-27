@@ -5,7 +5,7 @@ TJobStream::TJobStream(double JobIntense)
 	if (JobIntense >= 0.0 && JobIntense <= 1.0)
 	{
 		this->JobIntense = JobIntense;
-		LastJobId = 1;
+		LastJobId = 0;
 	}
 	else
 		throw "Job Intens must be between 0.0 and 1.0";
