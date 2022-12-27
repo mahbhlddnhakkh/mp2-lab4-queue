@@ -21,7 +21,7 @@ size_t TJobStream::GetNewJob(void)
 	if (static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX) <= JobIntense)
 	{
 		LastJobId++;
-		return LastJobId - 1;
+		return LastJobId;
 	}
 	else
 		return 0;
