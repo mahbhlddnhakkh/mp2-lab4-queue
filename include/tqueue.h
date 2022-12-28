@@ -12,10 +12,18 @@
 const size_t MAX_QUEUE_SIZE = 100000000;
 
 template <typename T>
+class TQueueItem
+{
+public:
+	T value;
+	size_t priority;
+};
+
+template <typename T>
 class TQueue
 {
 protected:
-	T* pMem;
+	TQueueItem<T>* pMem;
 	size_t MemSize;
 	size_t Hi;
 	size_t Li;
@@ -33,7 +41,7 @@ public:
 	bool IsFull(void) const noexcept;
 
 	void Free(void) noexcept;
-	void Push(const T& e);
+	void Push(const T& e, size_t priority = 0);
 	T Top(void) const;
 	void Pop(void);
 	T TopPop(void);
@@ -50,7 +58,7 @@ inline TQueue<T>::TQueue(size_t sz) : Hi(0), Li(0), pMem(nullptr), DataCount(0)
 	if (sz > MAX_QUEUE_SIZE)
 		throw std::out_of_range("Queue size should be less than MAX_QUEUE_SIZE");
 	MemSize = sz;
-	pMem = new T[MemSize];
+	pMem = new TQueueItem<T>[MemSize];
 }
 
 template<typename T>
@@ -68,7 +76,7 @@ inline TQueue<T>::TQueue(const TQueue<T>& q)
 		Hi = q.Hi;
 		Li = q.Li;
 		DataCount = q.DataCount;
-		pMem = new T[MemSize];
+		pMem = new TQueueItem<T>[MemSize];
 		if (!(q.IsEmpty()))
 		{
 			size_t j = Hi;
@@ -96,7 +104,7 @@ inline TQueue<T>& TQueue<T>::operator=(const TQueue<T>& q)
 		return *this;
 	if (MemSize != q.MemSize)
 	{
-		T* tmp = new T[q.MemSize];
+		TQueueItem<T>* tmp = new TQueueItem<T>[q.MemSize];
 		delete[] pMem;
 		MemSize = q.MemSize;
 		pMem = tmp;
@@ -161,12 +169,26 @@ inline void TQueue<T>::Free(void) noexcept
 }
 
 template<typename T>
-inline void TQueue<T>::Push(const T& e)
+inline void TQueue<T>::Push(const T& e, size_t priority)
 {
+	
 	if (IsFull())
 		throw std::out_of_range("Queue is full");
-	pMem[Li] = e;
-	//Li = (Li + 1) % MemSize;
+	size_t i = Li, j = Li - 1;
+	while (i != Hi)
+	{
+		i = (i != ~0) ? i : MemSize - 1;
+		j = (j != ~0) ? j : MemSize - 1;
+		if (priority <= pMem[j].priority)
+			break;
+		TQueueItem<T> tmp = pMem[i];
+		pMem[i] = pMem[j];
+		pMem[j] = tmp;
+		i--;
+		j--;
+	}
+	pMem[i].value = e;
+	pMem[i].priority = priority;
 	Li++;
 	Li = (Li < MemSize) ? Li : 0; // : Li - MemSize; // Но Li - MemSize всегда 0.
 	DataCount++;
@@ -177,7 +199,7 @@ inline T TQueue<T>::Top(void) const
 {
 	if (IsEmpty())
 		throw "Queue is empty";
-	return pMem[Hi];
+	return pMem[Hi].value;
 }
 
 template<typename T>
@@ -207,7 +229,7 @@ inline bool TQueue<T>::operator==(const TQueue& q) const noexcept
 	size_t j = Hi, k = q.Hi;
 	for (size_t i = 0; i < DataCount; i++)
 	{
-		if (pMem[j] != q.pMem[k])
+		if (pMem[j].value != q.pMem[k].value || pMem[j].priority != q.pMem[j].priority)
 			return false;
 		j--;
 		if (j == unzero)
